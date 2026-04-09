@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, ImageBackground } from 'react-native';
 import useAuthStore, { api } from '../store/authStore';
 import { COLORS, SPACING, SIZES } from '../constants/theme';
 import { Heart } from 'lucide-react-native';
@@ -29,115 +30,146 @@ const LoginScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+    <ImageBackground 
+      source={require('../../assets/login_bg.jpg')} 
+      style={styles.backgroundImage}
+      resizeMode="cover"
     >
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-            <Image 
-              source={require('../../assets/icon.png')} 
-              style={{ width: 100, height: 100, borderRadius: 25 }}
-              resizeMode="contain"
+      <View style={styles.overlay} />
+      
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.container}
+      >
+        <View style={styles.glassBox}>
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+                <Image 
+                  source={require('../../assets/icon.png')} 
+                  style={{ width: 80, height: 80, borderRadius: 20 }}
+                  resizeMode="contain"
+                />
+            </View>
+            <Text style={styles.title}>SexoFacil</Text>
+            <Text style={styles.subtitle}>Encontros Quentes e Reais</Text>
+          </View>
+
+          <View style={styles.form}>
+            <TextInput
+              style={styles.input}
+              placeholder="E-MAIL"
+              placeholderTextColor={COLORS.textLight}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
             />
+            <TextInput
+              style={styles.input}
+              placeholder="SENHA"
+              placeholderTextColor={COLORS.textLight}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+
+            <TouchableOpacity 
+              style={styles.button} 
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <Text style={styles.buttonText}>ENTRAR</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.secondaryButton}
+              onPress={() => navigation.navigate('Register')}
+            >
+              <Text style={styles.secondaryButtonText}>Criar conta grátis no SexoFacil</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <Text style={styles.title}>SexoFacil</Text>
-        <Text style={styles.subtitle}>Encontre pessoas reais perto de você</Text>
-      </View>
-
-      <View style={styles.form}>
-        <TextInput
-          style={styles.input}
-          placeholder="E-MAIL"
-          placeholderTextColor={COLORS.textLight}
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="SENHA"
-          placeholderTextColor={COLORS.textLight}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-
-        <TouchableOpacity 
-          style={styles.button} 
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color={COLORS.white} />
-          ) : (
-            <Text style={styles.buttonText}>ENTRAR</Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.secondaryButton}
-          onPress={() => navigation.navigate('Register')}
-        >
-          <Text style={styles.secondaryButtonText}>Ainda não tem conta? Cadastre-se</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
     padding: SPACING.lg,
     justifyContent: 'center',
   },
+  glassBox: {
+    backgroundColor: 'transparent',
+    borderRadius: 30,
+    padding: SPACING.lg,
+    paddingVertical: SPACING.xl,
+    zIndex: 1,
+  },
   header: {
     alignItems: 'center',
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.lg,
   },
   logoContainer: {
-    width: 100,
-    height: 100,
+    width: 80,
+    height: 80,
     backgroundColor: 'white',
-    borderRadius: 50,
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: SPACING.md,
-    elevation: 4,
+    marginBottom: SPACING.sm,
+    elevation: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
   },
   title: {
-    fontSize: 42,
+    fontSize: 48,
     fontWeight: '900',
-    color: COLORS.primary,
+    color: '#ffffff',
     fontStyle: 'italic',
-    letterSpacing: -2,
+    letterSpacing: -1.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: {width: 0, height: 2},
+    textShadowRadius: 15
   },
   subtitle: {
-    fontSize: 14,
-    color: COLORS.textLight,
+    fontSize: 16,
+    color: '#ffffff',
     marginTop: SPACING.xs,
-    fontWeight: 'bold',
+    fontWeight: '900',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: {width: 0, height: 1},
+    textShadowRadius: 8
   },
   form: {
-    marginTop: SPACING.md,
+    marginTop: SPACING.sm,
   },
   input: {
-    backgroundColor: COLORS.white,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     height: SIZES.inputHeight,
     borderRadius: SIZES.radius,
     paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: '#ffffff',
     fontSize: 16,
-    color: COLORS.text,
+    color: '#111827',
   },
   button: {
     backgroundColor: COLORS.primary,
@@ -146,7 +178,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: SPACING.md,
-    elevation: 2,
+    elevation: 4,
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   buttonText: {
     color: COLORS.white,
@@ -159,9 +194,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryButtonText: {
-    color: COLORS.textLight,
-    fontSize: 14,
+    color: '#ffffff',
+    fontSize: 15,
     fontWeight: 'bold',
+    textDecorationLine: 'underline'
   }
 });
 

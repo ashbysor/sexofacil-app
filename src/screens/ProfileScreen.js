@@ -1,13 +1,34 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
-import useAuthStore from '../store/authStore';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
+import useAuthStore, { api } from '../store/authStore';
 import { COLORS, SPACING, SIZES } from '../constants/theme';
 import { useNavigation } from '@react-navigation/native';
-import { Wallet, LogOut, Settings, ShieldCheck } from 'lucide-react-native';
+import { Wallet, LogOut, Settings, ShieldCheck, MessageCircle, Ticket, X } from 'lucide-react-native';
 
 const ProfileScreen = () => {
-  const { user, logout } = useAuthStore();
+  const { user, logout, checkAuth } = useAuthStore();
   const navigation = useNavigation();
+
+  const [showCouponModal, setShowCouponModal] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [redeeming, setRedeeming] = useState(false);
+
+
+  const handleRedeem = async () => {
+    if (!couponCode.trim()) return;
+    setRedeeming(true);
+    try {
+      const res = await api.post('/coupons/redeem', { code: couponCode });
+      Alert.alert('Sucesso! 🎁', res.data.message);
+      await checkAuth(); 
+      setShowCouponModal(false);
+      setCouponCode('');
+    } catch (err) {
+      Alert.alert('Erro', err.response?.data?.error || 'Erro ao resgatar cupom');
+    } finally {
+      setRedeeming(false);
+    }
+  };
   
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 50 }}>
@@ -44,6 +65,15 @@ const ProfileScreen = () => {
               <Settings color={COLORS.textLight} size={22} />
               <Text style={styles.optionText}>Editar Perfil</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity 
+             style={styles.optionRow} 
+             onPress={() => setShowCouponModal(true)}
+          >
+              <Ticket color={COLORS.primary} size={22} />
+              <Text style={[styles.optionText, { color: COLORS.primary }]}>Resgatar Cupom / Código</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.optionRow} onPress={() => navigation.navigate('Support')}>
               <MessageCircle color={COLORS.textLight} size={22} />
               <Text style={styles.optionText}>Conversar com Suporte</Text>
@@ -53,6 +83,46 @@ const ProfileScreen = () => {
               <Text style={[styles.optionText, { color: COLORS.error }]}>Sair da Conta</Text>
           </TouchableOpacity>
       </View>
+
+      {/* Coupon Modal */}
+      <Modal visible={showCouponModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ticket color={COLORS.primary} size={20} />
+                <Text style={styles.modalTitle}>RESGATAR CUPOM</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowCouponModal(false)}>
+                <X color={COLORS.textLight} size={24} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalDesc}>
+              Digite seu código promocional para ativar seu benefício agora!
+            </Text>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>CÓDIGO DO CUPOM</Text>
+              <TextInput 
+                style={styles.input} 
+                value={couponCode}
+                onChangeText={(t) => setCouponCode(t.toUpperCase())}
+                placeholder="EX: SEXOFACIL100"
+                autoCapitalize="characters"
+              />
+            </View>
+
+            <TouchableOpacity 
+              style={[styles.redeemBtn, (redeeming || !couponCode.trim()) && { opacity: 0.6 }]}
+              disabled={redeeming || !couponCode.trim()}
+              onPress={handleRedeem}
+            >
+              {redeeming ? <ActivityIndicator color="white" /> : <Text style={styles.redeemBtnText}>ATIVAR AGORA</Text>}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -165,6 +235,70 @@ const styles = StyleSheet.create({
       color: '#374151',
       fontWeight: '600',
       marginLeft: 15,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 30,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#111827',
+    marginLeft: 10,
+  },
+  modalDesc: {
+    fontSize: 14,
+    color: COLORS.textLight,
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  inputGroup: {
+    marginBottom: 15,
+  },
+  inputLabel: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: COLORS.textLight,
+    marginBottom: 6,
+  },
+  input: {
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  redeemBtn: {
+    backgroundColor: COLORS.primary,
+    height: 54,
+    borderRadius: 27,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  redeemBtnText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
   }
 });
 

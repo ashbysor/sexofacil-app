@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ActivityIndicator, View, StatusBar } from 'react-native';
-import { Home, Heart, MessageCircle, User } from 'lucide-react-native';
+import { Home, Heart, MessageCircle, User, Camera } from 'lucide-react-native';
 import { 
   useFonts,
   Outfit_400Regular,
@@ -26,6 +26,9 @@ import LikesScreen from './src/screens/LikesScreen';
 import ChatListScreen from './src/screens/ChatListScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import ChatNavigator from './src/navigation/ChatNavigator';
+import PhotosScreen from './src/screens/PhotosScreen';
+import AdminScreen from './src/screens/AdminScreen';
+import { ShieldCheck } from 'lucide-react-native';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -69,6 +72,14 @@ function MainTabs() {
         }}
       />
       <Tab.Screen 
+        name="Photos" 
+        component={PhotosScreen} 
+        options={{
+          tabBarIcon: ({ color }) => <Camera size={24} color={color} />,
+          title: 'Fotos'
+        }}
+      />
+      <Tab.Screen 
         name="Profile" 
         component={ProfileScreen} 
         options={{
@@ -76,6 +87,16 @@ function MainTabs() {
           title: 'Perfil'
         }}
       />
+      {user?.isAdmin && (
+        <Tab.Screen 
+          name="Admin" 
+          component={AdminScreen} 
+          options={{
+            tabBarIcon: ({ color }) => <ShieldCheck size={24} color={color} fill={color === COLORS.primary ? COLORS.primary : 'none'} />,
+            title: 'Admin'
+          }}
+        />
+      )}
     </Tab.Navigator>
   );
 }
@@ -94,7 +115,11 @@ export default function App() {
 
   useEffect(() => {
     if (user) {
-        registerForPushNotificationsAsync();
+        try {
+            registerForPushNotificationsAsync();
+        } catch (e) {
+            console.error('[PUSH-INIT-ERROR]', e);
+        }
     }
   }, [user]);
 
@@ -116,6 +141,7 @@ export default function App() {
             <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Support" component={SupportScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Deposit" component={DepositScreen} options={{ headerShown: true, title: 'Adicionar Saldo' }} />
+            <Stack.Screen name="AdminDashboard" component={AdminScreen} options={{ headerShown: false }} />
           </>
         ) : (
           <>

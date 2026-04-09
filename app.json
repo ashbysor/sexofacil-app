@@ -2,7 +2,7 @@
   "expo": {
     "name": "SexoFacil",
     "slug": "sexofacil-app",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -14,10 +14,19 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sexofacil.app"
+      "bundleIdentifier": "com.sexofacil.app",
+      "buildNumber": "4"
     },
     "android": {
       "package": "com.sexofacil.app",
+      "versionCode": 4,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.VIBRATE"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -29,7 +38,11 @@
     },
     "plugins": [
       "expo-font",
-      "expo-video"
+      "expo-av",
+      "expo-video",
+      "expo-notifications",
+      "expo-image-picker",
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {

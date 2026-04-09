@@ -135,6 +135,53 @@ const ChatRoomScreen = () => {
     }
   };
 
+  // Audio Player Component
+  const AudioMessage = ({ url, isMine }) => {
+    const [sound, setSound] = useState(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+
+    useEffect(() => {
+      return () => {
+        if (sound) sound.unloadAsync();
+      };
+    }, [sound]);
+
+    const playPause = async () => {
+      if (sound) {
+        if (isPlaying) {
+          await sound.pauseAsync();
+          setIsPlaying(false);
+        } else {
+          await sound.playAsync();
+          setIsPlaying(true);
+        }
+      } else {
+        const { sound: newSound } = await Audio.Sound.createAsync(
+          { uri: getFullUrl(url) },
+          { shouldPlay: true }
+        );
+        setSound(newSound);
+        setIsPlaying(true);
+        newSound.setOnPlaybackStatusUpdate((status) => {
+          if (status.didJustFinish) {
+            setIsPlaying(false);
+            newSound.setPositionAsync(0);
+          }
+        });
+      }
+    };
+
+    return (
+      <TouchableOpacity 
+        style={[styles.audioBubble, { backgroundColor: isMine ? 'rgba(255,255,255,0.2)' : '#f3f4f6' }]} 
+        onPress={playPause}
+      >
+        {isPlaying ? <Pause size={20} color={isMine ? 'white' : COLORS.primary} /> : <Play size={20} color={isMine ? 'white' : COLORS.primary} />}
+        <Text style={[styles.audioText, { color: isMine ? 'white' : COLORS.text }]}>Mensagem de Voz</Text>
+      </TouchableOpacity>
+    );
+  };
+
   const renderMessage = useCallback(({ item }) => {
     const isMine = item.senderId === user.id;
     return (
@@ -146,6 +193,8 @@ const ChatRoomScreen = () => {
               style={styles.messageImage} 
               resizeMode="cover" 
             />
+          ) : item.type === 'audio' ? (
+            <AudioMessage url={item.audioUrl} isMine={isMine} />
           ) : (
             <Text style={[styles.msgText, isMine ? styles.myMsgText : styles.otherMsgText]}>
               {item.content}
@@ -261,6 +310,16 @@ const styles = StyleSheet.create({
   otherMsgText: { color: '#111827' },
   
   messageImage: { width: width * 0.6, height: width * 0.8, borderRadius: 12, marginBottom: 4 },
+  
+  audioBubble: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: 10, 
+    borderRadius: 12, 
+    minWidth: 160,
+    marginBottom: 4
+  },
+  audioText: { marginLeft: 10, fontSize: 14, fontWeight: '500' },
   
   footerRow: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end', marginTop: 2 },
   msgTime: { fontSize: 9, color: '#9ca3af' },
