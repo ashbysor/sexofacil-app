@@ -1,0 +1,55 @@
+name: Android Build (GitHub Actions)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - '**'
+
+jobs:
+  build:
+    name: Build Android (Release)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: ☕ Setup Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 📦 Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: ⚙️ Install dependencies
+        run: npm install
+
+      - name: 🛠️ Setup EAS CLI
+        run: npm install -g eas-cli
+
+      - name: 🚀 Prebuild Android
+        run: npx expo prebuild --platform android --no-install
+
+      - name: 💎 Build App Bundle (AAB)
+        working-directory: ./android
+        run: ./gradlew bundleRelease
+        env:
+          NODE_ENV: production
+
+      - name: 📦 Upload APK/AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release-bundle
+          path: android/app/build/outputs/bundle/release/*.aab
+          retention-days: 7
