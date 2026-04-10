@@ -45,6 +45,7 @@ jobs:
         run: ./gradlew bundleRelease
         env:
           NODE_ENV: production
+          NODE_OPTIONS: "--max-old-space-size=4096"
 
       - name: 📦 Upload APK/AAB Artifact
         uses: actions/upload-artifact@v4
